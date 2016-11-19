@@ -1,0 +1,60 @@
+<f:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+    xmlns:f="library://ns.feathersui.com/mxml"
+	theme="feathers.themes.MetalWorksDesktopTheme"
+	creationComplete="creationCompleteHandler(event)"
+	xmlns:components="feathers.extensions.tree.*">
+		<f:layout>
+			<f:VerticalLayout/>
+		</f:layout>
+		<components:Tree id="tree" itemRenderer="{components.CustomTreeItemRenderer}" select="changeHandler(event)" width="400" height="400"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import feathers.extensions.tree.events.TreeEvent;
+			import components.CustomTreeItemRenderer;
+			
+			private function creationCompleteHandler( event:Event ):void
+			{
+				var directory:File = File.getRootDirectories()[0];
+				var list:Array = directory.getDirectoryListing();
+				for (var i:uint = 0; i < list.length; i++) {
+					if(list[i].isDirectory)
+					{
+						tree.addItemAfter( { name:list[i].name, children:[] }, new <int>[ i - 1 ] );
+					}
+					else
+					{
+						tree.addItemAfter( { name:list[i].name }, new <int>[ i - 1 ] );
+					}
+				}
+			}
+			private function changeHandler( event:TreeEvent ):void
+			{
+				if(event.isDirectory)
+				{
+					if(event.item.isOpen)
+					{
+						tree.removeJsonChildrenAt( event.index );
+						return;
+					}
+					var directory:File = File.getRootDirectories()[0].resolvePath(tree.getPathAt(event.index));
+					var list:Array = directory.getDirectoryListing();
+					for (var i:uint = 0; i < list.length; i++) {
+						if(list[i].isDirectory)
+						{
+							event.index.push( i - 1 );
+							tree.addItemAfter( { name:list[i].name, children:[] }, event.index );
+							event.index.pop();
+						}
+						else
+						{
+							event.index.push( i - 1 );
+							tree.addItemAfter( { name:list[i].name }, event.index );
+							event.index.pop();
+						}
+					}
+				}
+			}
+		]]>
+	</fx:Script>
+</f:Application>

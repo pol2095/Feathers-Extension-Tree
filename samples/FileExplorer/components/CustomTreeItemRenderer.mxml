@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<components:TreeItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:f="library://ns.feathersui.com/mxml"
+	xmlns:components="feathers.extensions.tree.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import starling.textures.Texture;
+			import starling.textures.TextureAtlas;
+			import flash.display.Bitmap;
+			
+			[Embed(source="./spritesheet/images/mediumIcons.png")]
+			private const close_imageSpriteSheet:Class;
+			[Embed(source="./spritesheet/images/mediumIcons.xml", mimeType="application/octet-stream")]
+			private const close_atlas:Class;
+			private var xml:XML = XML(new close_atlas());
+			private var bitmap:Bitmap = new close_imageSpriteSheet;
+			private var texture:Texture = Texture.fromBitmap(bitmap, false, false, 2);
+			private var textureAtlas:TextureAtlas = new TextureAtlas(texture, xml);
+			public var fileTexture:Texture = textureAtlas.getTexture("file-icon0000");
+			public var folderTexture:Texture = textureAtlas.getTexture("folder-icon0000");
+			public var buttonRightArrowTexture:Texture = textureAtlas.getTexture("right-arrow-icon0000");
+			public var buttonDownArrowTexture:Texture = textureAtlas.getTexture("down-arrow-icon0000");
+			
+			override public function treeChangeHandler():void
+			{
+				super.treeChangeHandler(); //never forget to add this!
+				
+				label.text = this.data.name;
+				dir.source = isDirectory ? folderTexture : fileTexture;
+				if(isDirectory) arrow.source = buttonRightArrowTexture;
+			}
+			
+			override protected function rowChangeHandler():void
+			{
+				if(isChanging) return; //never forget to add this!
+				
+				/*this.data.check = checkBox.isSelected ? 1 : 0;
+				this.data.comment = textInput.text;*/
+				
+				super.rowChangeHandler(); //never forget to add this!
+			}
+		]]>
+	</fx:Script>
+	
+	<components:layout>
+		<f:HorizontalLayout verticalAlign="middle"/>
+	</components:layout>
+		
+	<f:ImageLoader id="dir"/>
+	<f:Label id="label"/>
+	<f:ImageLoader id="arrow"/>
+</components:TreeItemRenderer>
