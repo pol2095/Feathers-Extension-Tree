@@ -51,7 +51,7 @@ package feathers.extensions.tree
 	 *  A branch item can contain leaf or branch items, or it can be empty.
 	 *
 	 * @see http://pol2095.free.fr/Feathers-Extension-Tree/ How to use Tree with mxml
-	 * @see feathers.extensions.tree.Tree
+	 * @see feathers.extensions.tree.TreeItemRenderer
 	 */
 	public class Tree extends ScrollContainer
 	{
