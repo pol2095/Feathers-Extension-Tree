@@ -22,13 +22,13 @@ package feathers.extensions.tree.events {
 		
 		private var _newIndex:Vector.<int>;
 		private var _lastIndex:Vector.<int>;
-		private var _isDirectory:Boolean;
+		private var _isParentDirectory:Boolean;
 
-		public function DragDropTreeEvent(type:String, newIndex:Vector.<int>, lastIndex:Vector.<int>, isDirectory:Boolean, bubbles:Boolean=false, cancelable:Boolean=false) {
+		public function DragDropTreeEvent(type:String, newIndex:Vector.<int>, lastIndex:Vector.<int>, isParentDirectory:Boolean, bubbles:Boolean=false, cancelable:Boolean=false) {
 			super(type, bubbles, cancelable);
 			_newIndex = newIndex;
 			_lastIndex = lastIndex;
-			_isDirectory = isDirectory;
+			_isParentDirectory = isParentDirectory;
 		}
 		
 		/**
@@ -41,8 +41,9 @@ package feathers.extensions.tree.events {
 		 */
 		public function get lastIndex():Vector.<int> { return _lastIndex; }
 		/**
-		 * Indicates whether the item is a branch.
+		 * Indicates whether the dropped item is a branch.
+		 * Return true if the dropped item is a directory, see newIndex.
 		 */
-		public function get isDirectory():Boolean { return _isDirectory; }
+		public function get isParentDirectory():Boolean { return _isParentDirectory; }
 	}
 }
