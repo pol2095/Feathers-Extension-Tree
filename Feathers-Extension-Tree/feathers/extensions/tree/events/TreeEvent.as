@@ -40,8 +40,6 @@ package feathers.extensions.tree.events {
 		
 		/**
 		 * The index of tree item.
-		 *
-		 * @default 10
 		 */
 		public function get index():Vector.<int> { return _index; }
 		/**
