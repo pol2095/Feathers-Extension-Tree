@@ -33,6 +33,7 @@ package feathers.extensions.tree.events {
 		
 		/**
 		 * The new index of the dragged and dropped tree item.
+		 * If the dropped item is a directory, newIndex return the parent item index.
 		 */
 		public function get newIndex():Vector.<int> { return _newIndex; }
 		/**
