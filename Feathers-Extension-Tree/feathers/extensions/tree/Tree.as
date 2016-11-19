@@ -28,6 +28,7 @@ package feathers.extensions.tree
 	import feathers.layout.VerticalLayout;
 	import starling.display.Quad;
 	import feathers.extensions.tree.events.TreeEvent;
+	import feathers.extensions.tree.events.DragDropTreeEvent;
 	import flash.utils.getDefinitionByName;
 	import starling.display.DisplayObjectContainer;
 	import feathers.dragDrop.IDragSource;
@@ -43,6 +44,10 @@ package feathers.extensions.tree
 	 * Dispatched when a tree item is selected.
 	 */
 	[Event(name="select", type="feathers.extensions.tree.events.TreeEvent")]
+	/**
+	 * Dispatched when a tree item is dragged and dropped.
+	 */
+	[Event(name="dragComplete", type="feathers.extensions.tree.events.DragDropTreeEvent")]
 	
 	/**
 	 *  The Tree control lets a user view hierarchical data arranged as an expandable tree.
@@ -174,6 +179,7 @@ package feathers.extensions.tree
 		private var dragging:Object;
 		private var dropping:Object;
 		private var mouse:Point;
+		private var draggingIndex:Vector.<int>;
 		/**
 		 * @private 
 		 */
@@ -213,6 +219,7 @@ package feathers.extensions.tree
 		private function onStartDrag(dragging:Object):void
 		{
 			this.dragging = dragging;
+			draggingIndex = this.getItemIndex(dragging);
 			var avatar:Image = new Image( Texture.fromBitmapData( takeScreenshot(stage.starling, dragging as DisplayObjectContainer) ) );
 			avatar.alpha = 0.5;
 			
@@ -279,49 +286,58 @@ package feathers.extensions.tree
 		}
 		private function dragCompleteHandler(event:DragDropEvent, dragData:DragData):void
 		{
-			var buttonDrag:Object = dropping;
-			if( TreeUtil.isSelf(tree, buttonDrag, dragging) ) return;
-			if(!buttonDrag.isDirectory)
+			var itemDrag:Object = dropping;
+			if( TreeUtil.isSelf(tree, itemDrag, dragging) ) return;
+			var newIndex:Vector.<int>;
+			var isDirectory:Boolean;
+			if(!itemDrag.isDirectory)
 			{
-				TreeUtil.move( dataProvider, buttonDrag, dragging, isBefore( buttonDrag ) );
+				TreeUtil.move( dataProvider, itemDrag, dragging, isBefore( itemDrag ) );
+				newIndex = this.getItemIndex( dragging );
 			}
 			else
 			{
-				switch(areaBD(buttonDrag))
+				switch(areaBD(itemDrag))
 				{
 					case "top":
-						TreeUtil.move( dataProvider, buttonDrag, dragging, true );
+						TreeUtil.move( dataProvider, itemDrag, dragging, true );
+						newIndex = this.getItemIndex( dragging );
 						break;
 					case "bottom":
-						TreeUtil.move( dataProvider, buttonDrag, dragging, false );
+						TreeUtil.move( dataProvider, itemDrag, dragging, false );
+						newIndex = this.getItemIndex( dragging );
 						break;
 					case "middle":
-						TreeUtil.moveNext( dataProvider, buttonDrag, dragging );
+						TreeUtil.moveNext( dataProvider, itemDrag, dragging );
+						isDirectory = true;
+						newIndex = this.getItemIndex( dropping );
 						break;
 				}
 			}
 			this._selectedIndex = dragging.isSelected ? this.getItemIndex( dragging ) : null;
+			
+			dispatchEvent(new DragDropTreeEvent( DragDropTreeEvent.DRAG_COMPLETE, newIndex, this.draggingIndex, isDirectory));
 		}
-		private function isBefore(buttonDrag:Object):Boolean
+		private function isBefore(itemDrag:Object):Boolean
 		{
 			var mouse:Point = touch.getLocation(stage);
-			var pt:Point = buttonDrag.localToGlobal(new Point (0, 0));
-			var rect:Rectangle = new Rectangle(pt.x, pt.y, buttonDrag.width, buttonDrag.height / 2);
+			var pt:Point = itemDrag.localToGlobal(new Point (0, 0));
+			var rect:Rectangle = new Rectangle(pt.x, pt.y, itemDrag.width, itemDrag.height / 2);
 			if(rect.containsPoint( mouse ))
 			{
 				return true;
 			}
 			return false;
 		}
-		private function areaBD(buttonDrag:Object):String
+		private function areaBD(itemDrag:Object):String
 		{
 			var mouse:Point = touch.getLocation(stage);
-			var pt:Point = buttonDrag.localToGlobal(new Point (0, 0));
-			var rect:Rectangle = new Rectangle(pt.x, pt.y, buttonDrag.width, buttonDrag.height / 3);
+			var pt:Point = itemDrag.localToGlobal(new Point (0, 0));
+			var rect:Rectangle = new Rectangle(pt.x, pt.y, itemDrag.width, itemDrag.height / 3);
 			if(rect.containsPoint( mouse )) return "top";
-			rect = new Rectangle(pt.x, pt.y + buttonDrag.height / 3, buttonDrag.width, buttonDrag.height / 3);
+			rect = new Rectangle(pt.x, pt.y + itemDrag.height / 3, itemDrag.width, itemDrag.height / 3);
 			if(rect.containsPoint( mouse )) return "middle";
-			rect = new Rectangle(pt.x, pt.y + buttonDrag.height * 2 / 3, buttonDrag.width, buttonDrag.height / 3);
+			rect = new Rectangle(pt.x, pt.y + itemDrag.height * 2 / 3, itemDrag.width, itemDrag.height / 3);
 			if(rect.containsPoint( mouse )) return "bottom";
 			return null;
 		}
@@ -346,38 +362,38 @@ package feathers.extensions.tree
 		private var _verticalLayout:VerticalLayout = new VerticalLayout();
 		private function createItemRenderer(myObject:Object):Object
 		{
-			var buttonDrag:Object = new ItemRenderer();
-			buttonDrag.owner = this;
-			buttonDrag.addEventListener(DragDropEvent.DRAG_ENTER, dragEnterHandler);
-			buttonDrag.addEventListener(DragDropEvent.DRAG_DROP, dragDropHandler);
-			buttonDrag.addEventListener(DragDropEvent.DRAG_COMPLETE, dragCompleteHandler);
-			buttonDrag.name = "index";
-			buttonDrag.object = myObject;
-			buttonDrag.isDirectory = false;
-			buttonDrag.treeChangeHandler();
-			buttonDrag.layoutGroupButton = buttonDrag;
-			return buttonDrag
+			var itemDrag:Object = new ItemRenderer();
+			itemDrag.owner = this;
+			itemDrag.addEventListener(DragDropEvent.DRAG_ENTER, dragEnterHandler);
+			itemDrag.addEventListener(DragDropEvent.DRAG_DROP, dragDropHandler);
+			itemDrag.addEventListener(DragDropEvent.DRAG_COMPLETE, dragCompleteHandler);
+			itemDrag.name = "index";
+			itemDrag.object = myObject;
+			itemDrag.isDirectory = false;
+			itemDrag.treeChangeHandler();
+			itemDrag.layoutGroupButton = itemDrag;
+			return itemDrag
 		}
 		/**
 		 * @private
 		 */
 		public function addItemRenderer(myObject:Object, layoutGroup:Object, index:int = -1):void
 		{
-			var buttonDrag:Object = createItemRenderer( myObject );
+			var itemDrag:Object = createItemRenderer( myObject );
 			if(index == -1)
 			{
-				layoutGroup.addChild( buttonDrag );
+				layoutGroup.addChild( itemDrag );
 			}
 			else
 			{
-				layoutGroup.addChildAt( buttonDrag, index );
+				layoutGroup.addChildAt( itemDrag, index );
 			}
 			if(selectedIndex)
 			{
-				if(this.getItemIndex(buttonDrag).join(",") == selectedIndex.join(","))
+				if(this.getItemIndex(itemDrag).join(",") == selectedIndex.join(","))
 				{
-					buttonDrag.selectedLines();
-					buttonDrag.isSelected = true;
+					itemDrag.selectedLines();
+					itemDrag.isSelected = true;
 				}
 			}
 		}
@@ -391,17 +407,17 @@ package feathers.extensions.tree
 			verticalLayout.paddingLeft = indent;
 			subLayoutGroup.layout = verticalLayout;
 			
-			var buttonDrag:Object = new ItemRenderer();
-			buttonDrag.owner = this;
-			buttonDrag.isDirectory = true;
-			buttonDrag.addEventListener(DragDropEvent.DRAG_ENTER, dragEnterHandler);
-			buttonDrag.addEventListener(DragDropEvent.DRAG_DROP, dragDropHandler);
-			buttonDrag.addEventListener(DragDropEvent.DRAG_COMPLETE, dragCompleteHandler);
-			buttonDrag.layoutGroupButton = _layoutGroup;
-			buttonDrag.layoutGroup = subLayoutGroup;
-			buttonDrag.object = myObject;
-			buttonDrag.treeChangeHandler();
-			_layoutGroup.addChild( buttonDrag as DisplayObject);
+			var itemDrag:Object = new ItemRenderer();
+			itemDrag.owner = this;
+			itemDrag.isDirectory = true;
+			itemDrag.addEventListener(DragDropEvent.DRAG_ENTER, dragEnterHandler);
+			itemDrag.addEventListener(DragDropEvent.DRAG_DROP, dragDropHandler);
+			itemDrag.addEventListener(DragDropEvent.DRAG_COMPLETE, dragCompleteHandler);
+			itemDrag.layoutGroupButton = _layoutGroup;
+			itemDrag.layoutGroup = subLayoutGroup;
+			itemDrag.object = myObject;
+			itemDrag.treeChangeHandler();
+			_layoutGroup.addChild( itemDrag as DisplayObject);
 			
 			_layoutGroup.addChild( subLayoutGroup );
 			
@@ -421,42 +437,42 @@ package feathers.extensions.tree
 				layoutGroup.addChildAt( createLayout( myObject ), index );
 			}
 		}
-		private function onClickBD(buttonDrag:Object, click:Boolean = true, unselect:Boolean = false):void
+		private function onClickBD(itemDrag:Object, click:Boolean = true, unselect:Boolean = false):void
 		{
-			if(!unselect) dispatchEvent(new TreeEvent( TreeEvent.SELECT, this.getItemIndex( buttonDrag ), buttonDrag.isDirectory, buttonDrag.object, buttonDrag ));
+			if(!unselect) dispatchEvent(new TreeEvent( TreeEvent.SELECT, this.getItemIndex( itemDrag ), itemDrag.isDirectory, itemDrag.object, itemDrag ));
 			
-			if(buttonDrag.isDirectory)
+			if(itemDrag.isDirectory)
 			{
-				if(!buttonDrag.isOpen)
+				if(!itemDrag.isOpen)
 				{
-					if(buttonDrag.object.children.length != 0)
+					if(itemDrag.object.children.length != 0)
 					{
-						buttonDrag.arrow.source = buttonDrag.buttonDownArrowTexture;
-						TreeUtil.createItemRenderer(buttonDrag.object, this, buttonDrag.layoutGroup);
-						buttonDrag.isOpen = true;
+						itemDrag.arrow.source = itemDrag.itemDownArrowTexture;
+						TreeUtil.createItemRenderer(itemDrag.object, this, itemDrag.layoutGroup);
+						itemDrag.isOpen = true;
 					}
 				}
 				else
 				{
-					buttonDrag.arrow.source = buttonDrag.buttonRightArrowTexture;
-					buttonDrag.layoutGroup.removeChildren();
-					buttonDrag.isOpen = false;
+					itemDrag.arrow.source = itemDrag.itemRightArrowTexture;
+					itemDrag.layoutGroup.removeChildren();
+					itemDrag.isOpen = false;
 				}
 			}
 			else
 			{
 				if(selectable)
 				{
-					buttonDrag.selectedLines();
-					buttonDrag.isSelected = !buttonDrag.isSelected;
+					itemDrag.selectedLines();
+					itemDrag.isSelected = !itemDrag.isSelected;
 					if(click)
 					{
-						var index:Vector.<int> = this.getItemIndex( buttonDrag );
+						var index:Vector.<int> = this.getItemIndex( itemDrag );
 						if(this.selectedIndex)
 						{
 							if(index.join(",") != this.selectedIndex.join(",")) this.unselect();
 						}
-						this._selectedIndex = buttonDrag.isSelected ? index : null;
+						this._selectedIndex = itemDrag.isSelected ? index : null;
 					}
 				}
 			}
@@ -518,83 +534,83 @@ package feathers.extensions.tree
 		/**
 		 * @private
 		 */
-		public function onSeparator(buttonDrag:Object, pt:Point):void
+		public function onSeparator(itemDrag:Object, pt:Point):void
 		{
-			if( TreeUtil.isSelf(tree, buttonDrag, dragging) )
+			if( TreeUtil.isSelf(tree, itemDrag, dragging) )
 			{
 				removeSeparator();
 				return;
 			}
-			if(!buttonDrag.quad)
+			if(!itemDrag.quad)
 			{
-				buttonDrag.quad = new Quad(dragging.width, separator);
-				buttonDrag.quad.color = 0xffffff;
-				this.addChild(buttonDrag.quad);
+				itemDrag.quad = new Quad(dragging.width, separator);
+				itemDrag.quad.color = 0xffffff;
+				this.addChild(itemDrag.quad);
 			}
-			buttonDrag.quad.x = pt.x;
-			buttonDrag.quad.width = buttonDrag.width;
-			buttonDrag.quad.height = separator;
-			if(!buttonDrag.isDirectory)
+			itemDrag.quad.x = pt.x;
+			itemDrag.quad.width = itemDrag.width;
+			itemDrag.quad.height = separator;
+			if(!itemDrag.isDirectory)
 			{
-				buttonDrag.quad.y = isBefore(buttonDrag) ? pt.y - separator / 2 : pt.y + buttonDrag.height - separator / 2;
+				itemDrag.quad.y = isBefore(itemDrag) ? pt.y - separator / 2 : pt.y + itemDrag.height - separator / 2;
 			}
-			else if(!buttonDrag.isOpen)
+			else if(!itemDrag.isOpen)
 			{
-				switch(areaBD(buttonDrag))
+				switch(areaBD(itemDrag))
 				{
 					case "top":
-						buttonDrag.quad.y = pt.y - separator / 2;
+						itemDrag.quad.y = pt.y - separator / 2;
 						break;
 					
 					case "middle":
-						buttonDrag.quad.x = pt.x + buttonDrag.width - separator;
-						buttonDrag.quad.y = pt.y;
-						buttonDrag.quad.width = separator;
-						buttonDrag.quad.height = buttonDrag.height;
+						itemDrag.quad.x = pt.x + itemDrag.width - separator;
+						itemDrag.quad.y = pt.y;
+						itemDrag.quad.width = separator;
+						itemDrag.quad.height = itemDrag.height;
 						break;
 					
 					case "bottom":
-						buttonDrag.quad.y = pt.y + buttonDrag.height - separator / 2;
+						itemDrag.quad.y = pt.y + itemDrag.height - separator / 2;
 						break;
 				}
 			}
 			else
 			{
-				switch(areaBD(buttonDrag))
+				switch(areaBD(itemDrag))
 				{
 					case "top":
-						buttonDrag.quad.y = pt.y - separator / 2;
+						itemDrag.quad.y = pt.y - separator / 2;
 						break;
 					
 					case "middle":
-						buttonDrag.quad.x = pt.x + verticalLayout.paddingLeft;
-						buttonDrag.quad.y = pt.y + buttonDrag.height + buttonDrag.layoutGroup.height - separator / 2;
-						buttonDrag.quad.width = buttonDrag.layoutGroup.getChildAt( buttonDrag.layoutGroup.numChildren - 1 ).width;
+						itemDrag.quad.x = pt.x + verticalLayout.paddingLeft;
+						itemDrag.quad.y = pt.y + itemDrag.height + itemDrag.layoutGroup.height - separator / 2;
+						itemDrag.quad.width = itemDrag.layoutGroup.getChildAt( itemDrag.layoutGroup.numChildren - 1 ).width;
 						break;
 					
 					case "bottom":
-						var position:int = buttonDrag.parent.parent.getChildIndex(buttonDrag.parent);
-						if(position != buttonDrag.parent.parent.numChildren - 1)
+						var position:int = itemDrag.parent.parent.getChildIndex(itemDrag.parent);
+						if(position != itemDrag.parent.parent.numChildren - 1)
 						{
-							var container:Object = buttonDrag.parent.parent.getChildAt( position + 1 );
-							var buttonDragNext:Object = container is LayoutGroup ? container.getChildAt(0) as ItemRenderer : container as ItemRenderer;
-							var ptNext:Point = buttonDragNext.localToGlobal(new Point (0, 0));
+							var container:Object = itemDrag.parent.parent.getChildAt( position + 1 );
+							var itemDragNext:Object = container is LayoutGroup ? container.getChildAt(0) as ItemRenderer : container as ItemRenderer;
+							var ptNext:Point = itemDragNext.localToGlobal(new Point (0, 0));
 							ptNext = this.globalToLocal(ptNext);
-							buttonDrag.quad.width = buttonDragNext.width;
-							buttonDrag.quad.y = ptNext.y - separator / 2;
+							itemDrag.quad.width = itemDragNext.width;
+							itemDrag.quad.y = ptNext.y - separator / 2;
 						}
 						else
 						{
-							buttonDrag.quad.y = pt.y + buttonDrag.height + buttonDrag.layoutGroup.height - separator / 2;
-							buttonDrag.quad.width = dragging.width;
+							itemDrag.quad.y = pt.y + itemDrag.height + itemDrag.layoutGroup.height - separator / 2;
+							itemDrag.quad.width = dragging.width;
 						}
 						break;
 				}
 			}
-			if(separatorBD != buttonDrag)
+			if(separatorBD != itemDrag)
 			{
 				removeSeparator();
-				separatorBD = buttonDrag;
+				separatorBD = itemDrag;
 			}
 		}
 		/**
@@ -608,8 +624,6 @@ package feathers.extensions.tree
 				separatorBD.quad = null;
 			}
 		}
-		private var buttonMenuHover:Object;
-		private var menuItemPosition:String;
 		/**
 		 * Get the index of an item at the specified index.
 		 *
@@ -768,14 +782,14 @@ package feathers.extensions.tree
 				myObject = myObject.getChildAt( index[i] );
 				if(!myObject.hasOwnProperty("object"))
 				{
-					var buttonDrag:Object = myObject.getChildAt(0);
+					var itemDrag:Object = myObject.getChildAt(0);
 					myObject = myObject.getChildAt(1);
-					if(!buttonDrag.isOpen)
+					if(!itemDrag.isOpen)
 					{
-						if(buttonDrag.object.children.length == 0) continue;
-						buttonDrag.arrow.source = buttonDrag.buttonDownArrowTexture;
-						TreeUtil.createItemRenderer(buttonDrag.object, this, buttonDrag.layoutGroup);
-						buttonDrag.isOpen = true;
+						if(itemDrag.object.children.length == 0) continue;
+						itemDrag.arrow.source = itemDrag.itemDownArrowTexture;
+						TreeUtil.createItemRenderer(itemDrag.object, this, itemDrag.layoutGroup);
+						itemDrag.isOpen = true;
 					}
 				}
 			}
@@ -794,13 +808,13 @@ package feathers.extensions.tree
 				if( !myObject.hasOwnProperty("object") ) myObject = myObject.getChildAt(1);
 				if(i < index.length - 1) continue;
 				if( myObject.hasOwnProperty("object") ) myObject = myObject.parent;
-				var buttonDrag:Object = myObject.parent.getChildAt(0);
-				if(buttonDrag.isOpen)
+				var itemDrag:Object = myObject.parent.getChildAt(0);
+				if(itemDrag.isOpen)
 				{
-					if(buttonDrag.object.children.length == 0) continue;
-					buttonDrag.arrow.source = buttonDrag.buttonRightArrowTexture;
-					buttonDrag.layoutGroup.removeChildren();
-					buttonDrag.isOpen = false;
+					if(itemDrag.object.children.length == 0) continue;
+					itemDrag.arrow.source = itemDrag.itemRightArrowTexture;
+					itemDrag.layoutGroup.removeChildren();
+					itemDrag.isOpen = false;
 				}
 			}
 		}
@@ -841,9 +855,9 @@ package feathers.extensions.tree
 				myObject = myObject.getChildAt( index[i] );
 				if(!myObject.hasOwnProperty("object"))
 				{
-					var buttonDrag:Object = myObject.getChildAt(0);
+					var itemDrag:Object = myObject.getChildAt(0);
 					myObject = myObject.getChildAt(1);
-					if(!buttonDrag.isOpen)
+					if(!itemDrag.isOpen)
 					{
 						return false;
 					}
