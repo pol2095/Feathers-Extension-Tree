@@ -10,7 +10,7 @@ A branch item can contain leaf or branch items, or it can be empty.
 ## Quick Links
 
 * [Website](http://pol2095.free.fr/Feathers-Extension-Tree/)
-* [API Reference](http://pol2095.free.fr/Feathers-Extension-Tree/docs/feathers/extensions/tree/package-detail.html)
+* [API Reference](http://pol2095.free.fr/Starling-Feathers-Extensions/docs/feathers/extensions/tree/package-detail.html)
 * [Discussion Forum](http://forum.starling-framework.org/forum/feathers)
 * [Github Project](https://github.com/pol2095/Feathers-Extension-Tree)
 
