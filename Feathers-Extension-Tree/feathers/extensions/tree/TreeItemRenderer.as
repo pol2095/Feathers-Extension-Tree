@@ -248,12 +248,14 @@ package feathers.extensions.tree
 		{
 			if (touch.getTouch(this, TouchPhase.HOVER))
 			{
+				if(lineLeftHover.alpha == 0.5) return;
 				var color:uint = hoverLineColor;
 				lineLeftHover.color = lineRightHover.color = lineTopHover.color = lineBottomHover.color = color;
 				lineLeftHover.alpha = lineRightHover.alpha = lineTopHover.alpha = lineBottomHover.alpha = 0.5;
 			}
 			else
 			{
+				if(lineLeftHover.alpha == 0) return;
 				lineLeftHover.alpha = lineRightHover.alpha = lineTopHover.alpha = lineBottomHover.alpha = 0;
 			}
 		}
