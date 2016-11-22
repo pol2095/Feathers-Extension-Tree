@@ -371,7 +371,7 @@ package feathers.extensions.tree
 			itemDrag.object = myObject;
 			itemDrag.isDirectory = false;
 			itemDrag.treeChangeHandler();
-			itemDrag.layoutGroupButton = itemDrag;
+			itemDrag.layoutGroupIndex = itemDrag;
 			return itemDrag
 		}
 		/**
@@ -413,7 +413,7 @@ package feathers.extensions.tree
 			itemDrag.addEventListener(DragDropEvent.DRAG_ENTER, dragEnterHandler);
 			itemDrag.addEventListener(DragDropEvent.DRAG_DROP, dragDropHandler);
 			itemDrag.addEventListener(DragDropEvent.DRAG_COMPLETE, dragCompleteHandler);
-			itemDrag.layoutGroupButton = _layoutGroup;
+			itemDrag.layoutGroupIndex = _layoutGroup;
 			itemDrag.layoutGroup = subLayoutGroup;
 			itemDrag.object = myObject;
 			itemDrag.treeChangeHandler();
@@ -439,24 +439,28 @@ package feathers.extensions.tree
 		}
 		private function onClickBD(itemDrag:Object, click:Boolean = true, unselect:Boolean = false):void
 		{
-			if(!unselect) dispatchEvent(new TreeEvent( TreeEvent.SELECT, this.getItemIndex( itemDrag ), itemDrag.isDirectory, itemDrag.object, itemDrag ));
+			var index:Vector.<int> = this.getItemIndex( itemDrag );
+			if(!unselect) dispatchEvent(new TreeEvent( TreeEvent.SELECT, index, itemDrag.isDirectory, itemDrag.object, itemDrag ));
 			
 			if(itemDrag.isDirectory)
 			{
 				if(!itemDrag.isOpen)
 				{
+					itemDrag.object = this.getItemJsonAt( index );
 					if(itemDrag.object.children.length != 0)
 					{
 						itemDrag.arrow.source = itemDrag.itemDownArrowTexture;
-						TreeUtil.createItemRenderer(itemDrag.object, this, itemDrag.layoutGroup);
+						if(!animate) TreeUtil.createItemRenderer(itemDrag.object, this, itemDrag.layoutGroup);
 						itemDrag.isOpen = true;
+						if(animate) itemDrag.openItem();
 					}
 				}
 				else
 				{
 					itemDrag.arrow.source = itemDrag.itemRightArrowTexture;
-					itemDrag.layoutGroup.removeChildren();
+					if(!animate) itemDrag.layoutGroup.removeChildren();
 					itemDrag.isOpen = false;
+					if(animate) itemDrag.closeItem();
 				}
 			}
 			else
@@ -467,7 +471,6 @@ package feathers.extensions.tree
 					itemDrag.isSelected = !itemDrag.isSelected;
 					if(click)
 					{
-						var index:Vector.<int> = this.getItemIndex( itemDrag );
 						if(this.selectedIndex)
 						{
 							if(index.join(",") != this.selectedIndex.join(",")) this.unselect();
@@ -912,17 +915,14 @@ package feathers.extensions.tree
 				}
 				else
 				{
-					if(!myObject.hasOwnProperty("Object"))
+					if(myObject.numChildren != 0) myObject = myObject.getChildAt(1);
+					if(item.hasOwnProperty("children"))
 					{
-						if(myObject.numChildren != 0) myObject = myObject.getChildAt(1);
-						if(item.hasOwnProperty("children"))
-						{
-							this.addLayout(item, myObject);
-						}
-						else
-						{
-							this.addItemRenderer(item, myObject);
-						}
+						this.addLayout(item, myObject);
+					}
+					else
+					{
+						this.addItemRenderer(item, myObject);
 					}
 				}
 			}
@@ -959,17 +959,14 @@ package feathers.extensions.tree
 				}
 				else
 				{
-					if(!myObject.hasOwnProperty("Object"))
+					if(myObject.numChildren != 0) myObject = myObject.parent;
+					if(item.hasOwnProperty("children"))
 					{
-						if(myObject.numChildren != 0) myObject = myObject.parent;
-						if(item.hasOwnProperty("children"))
-						{
-							this.addLayout(item, myObject, endIndex); 
-						}
-						else
-						{
-							this.addItemRenderer(item, myObject, endIndex);
-						}
+						this.addLayout(item, myObject, endIndex); 
+					}
+					else
+					{
+						this.addItemRenderer(item, myObject, endIndex);
 					}
 				}
 			}
@@ -1006,30 +1003,27 @@ package feathers.extensions.tree
 				}
 				else
 				{
-					if(!myObject.hasOwnProperty("Object"))
+					if(myObject.numChildren != 0) myObject = myObject.parent;
+					if(myObject.numChildren != endIndex)
 					{
-						if(myObject.numChildren != 0) myObject = myObject.parent;
-						if(myObject.numChildren != endIndex)
+						if(item.hasOwnProperty("children"))
 						{
-							if(item.hasOwnProperty("children"))
-							{
-								this.addLayout(item, myObject, endIndex + 1);
-							}
-							else
-							{
-								this.addItemRenderer(item, myObject, endIndex + 1);
-							}
+							this.addLayout(item, myObject, endIndex + 1);
 						}
 						else
 						{
-							if(item.hasOwnProperty("children"))
-							{
-								this.addLayout(item, myObject); 
-							}
-							else
-							{
-								this.addItemRenderer(item, myObject);
-							}
+							this.addItemRenderer(item, myObject, endIndex + 1);
+						}
+					}
+					else
+					{
+						if(item.hasOwnProperty("children"))
+						{
+							this.addLayout(item, myObject); 
+						}
+						else
+						{
+							this.addItemRenderer(item, myObject);
 						}
 					}
 				}
@@ -1196,6 +1190,21 @@ package feathers.extensions.tree
 		public function rowChange(index:Vector.<int>, isDirectory:Boolean, object:Object, item:Object):void
 		{
 			dispatchEvent(new TreeEvent( TreeEvent.CHANGE, index, isDirectory, object, item ));
+		}
+		
+		private var _animate:Boolean = false;
+		/**
+		 * Determines if open and close item has animate.
+		 *
+		 * @default false
+		 */
+		public function get animate():Boolean
+		{
+			return this._animate;
+		}
+		public function set animate(value:Boolean):void
+		{
+			this._animate = value;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-# Feathers Extension Tree 1.0.0
+# Feathers Extension Tree 1.1.0
 
 Say hello to [Feathers Extension Tree](http://pol2095.free.fr/Feathers-Extension-Tree/).
 This project add a Tree control to Feathers UI, a library of light-weight, skinnable, and extensible UI controls for mobile and desktop. The components run on Starling Framework and the Adobe Flash runtimes, offering blazing fast GPU powered graphics to create a smooth and responsive experience. Build completely standalone, native applications on iOS, Android, Windows, and Mac OS X, or target Adobe Flash Player in desktop browsers.<br />

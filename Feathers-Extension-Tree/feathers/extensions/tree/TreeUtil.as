@@ -178,5 +178,27 @@ package feathers.extensions.tree
 				loopObjectInsert(myObject[s], target, position, object);
 			}
 		}
+		
+		private static var numChildren:int;
+		public static function numSubChildren(item:Object):int
+		{
+			numChildren = 0;
+			numSubChildrenLoop(item);
+			return numChildren;
+		}
+		private static function numSubChildrenLoop(item:Object):void
+		{
+			for(var i:int = 0; i < item.numChildren; i++)
+			{
+				if( item.getChildAt(i).hasOwnProperty("object") )
+				{
+					numChildren++;
+				}
+				else
+				{
+					numSubChildrenLoop( item.getChildAt(i) );
+				}
+			}
+		}
     }
 }

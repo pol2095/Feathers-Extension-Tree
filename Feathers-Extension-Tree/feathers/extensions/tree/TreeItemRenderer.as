@@ -12,6 +12,7 @@ accordance with the terms of the accompanying license agreement.
 */
 package feathers.extensions.tree
 {
+	import starling.events.Event;
 	import starling.events.EnterFrameEvent;
 	import feathers.layout.HorizontalLayout;
 	
@@ -19,8 +20,10 @@ package feathers.extensions.tree
 	import feathers.dragDrop.IDropTarget;
 	
 	import starling.display.Quad;
+	import starling.display.DisplayObjectContainer;
+	import starling.animation.Tween;
+	import starling.core.Starling;
 	import flash.geom.Rectangle;
-	import starling.display.Quad;
 	import feathers.controls.LayoutGroup;
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
@@ -62,7 +65,7 @@ package feathers.extensions.tree
 		/**
 		 * @private
 		 */
-		public var layoutGroupButton:Object;
+		public var layoutGroupIndex:Object;
 		/**
 		 * @private
 		 */
@@ -113,7 +116,6 @@ package feathers.extensions.tree
 		public function set isDirectory(value:Boolean):void
 		{
 			_isDirectory = value;
-			if(owner.hoverSelector) this.addEventListener(TouchEvent.TOUCH, onTouch);
 		}
 		
 		private var _owner:Tree;
@@ -166,7 +168,15 @@ package feathers.extensions.tree
 			backGround.alpha = 0;
 			layoutGroup.addChild( backGround );
 			this.addChild( layoutGroup );
+			
+			addEventListener(Event.ADDED_TO_STAGE, onAdd);
         }
+		
+		private function onAdd(event:Event):void
+		{
+			removeEventListener(Event.ADDED_TO_STAGE, onAdd);
+			if(owner.hoverSelector) owner.stage.addEventListener(TouchEvent.TOUCH, onTouch);
+		}
 		/**
 		 * @private
 		 */
@@ -258,6 +268,73 @@ package feathers.extensions.tree
 				if(lineLeftHover.alpha == 0) return;
 				lineLeftHover.alpha = lineRightHover.alpha = lineTopHover.alpha = lineBottomHover.alpha = 0;
 			}
+		}
+		
+		private var step:Number = 20;
+		private var progress:Boolean;
+		private var quadItem:Quad;
+		private var reverse:Boolean;
+		public function openItem():void
+		{
+			if(!progress)
+			{
+				TreeUtil.createItemRenderer(this.object, owner, this.layoutGroup);
+				this.layoutGroup.validate();
+				quadItem = new Quad(this.layoutGroup.width, 1);
+				this.layoutGroup.y = -this.layoutGroup.height + this.height;
+			}
+			reverse = false;
+			this.layoutGroup.includeInLayout = false;
+			this.layoutGroup.mask = quadItem;
+			
+			progress = true;
+			this.addEventListener(EnterFrameEvent.ENTER_FRAME, onOpenCloseHandler);
+		}
+		public function onOpenCloseHandler():void
+		{
+			var step:Number = this.step * Math.ceil( TreeUtil.numSubChildren( this.layoutGroup ) / 10 );
+			this.layoutGroup.y = !reverse ? this.layoutGroup.y + step : this.layoutGroup.y - step ;
+			this.layoutGroupIndex.height = this.layoutGroup.height + this.layoutGroup.y;
+			quadItem.y = -this.layoutGroup.y + this.height;
+			quadItem.width = this.layoutGroup.width;
+			quadItem.height = this.layoutGroup.height;
+			this.layoutGroup.mask = quadItem;
+			
+			if(this.layoutGroup.y > this.height)
+			{
+				this.layoutGroup.y = this.height;
+				openComplete();
+			}
+			else if(this.layoutGroup.y < this.height - this.layoutGroup.height)
+			{
+				this.layoutGroup.y = this.height - this.layoutGroup.height;
+				this.layoutGroupIndex.height = this.height;
+				closeComplete();
+			}
+		}
+		public function closeItem():void
+		{
+			reverse = true;
+			this.layoutGroup.includeInLayout = false;
+			this.layoutGroup.mask = quadItem;
+			
+			progress = true;
+			this.addEventListener(EnterFrameEvent.ENTER_FRAME, onOpenCloseHandler);
+		}
+		private function openComplete():void {
+			this.removeEventListener(EnterFrameEvent.ENTER_FRAME, onOpenCloseHandler);
+			progress = false;
+			this.layoutGroup.includeInLayout = true;
+			this.layoutGroup.mask = null;
+			this.layoutGroupIndex.height = NaN;
+		}
+		private function closeComplete():void {
+			this.removeEventListener(EnterFrameEvent.ENTER_FRAME, onOpenCloseHandler);
+			progress = false;
+			this.layoutGroup.includeInLayout = true;
+			this.layoutGroup.mask = null;
+			this.layoutGroupIndex.height = NaN;
+			this.layoutGroup.removeChildren();
 		}
 	}
 }
