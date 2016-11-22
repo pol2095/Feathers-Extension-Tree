@@ -274,6 +274,9 @@ package feathers.extensions.tree
 		private var progress:Boolean;
 		private var quadItem:Quad;
 		private var reverse:Boolean;
+		/**
+		 * @private
+		 */
 		public function openItem():void
 		{
 			if(!progress)
@@ -290,7 +293,7 @@ package feathers.extensions.tree
 			progress = true;
 			this.addEventListener(EnterFrameEvent.ENTER_FRAME, onOpenCloseHandler);
 		}
-		public function onOpenCloseHandler():void
+		private function onOpenCloseHandler():void
 		{
 			var step:Number = this.step * Math.ceil( TreeUtil.numSubChildren( this.layoutGroup ) / 10 );
 			this.layoutGroup.y = !reverse ? this.layoutGroup.y + step : this.layoutGroup.y - step ;
@@ -312,6 +315,9 @@ package feathers.extensions.tree
 				closeComplete();
 			}
 		}
+		/**
+		 * @private
+		 */
 		public function closeItem():void
 		{
 			reverse = true;
