@@ -201,6 +201,36 @@ package feathers.extensions.tree
 		 * the horizontal and vertical scroll positions will be reset, and the
 		 * tree's selection will be cleared.
 		 *
+		 * JSON structure :
+		 * <listing version="3.0">
+		 * var json:Object = [
+		 * 	{
+		 * 		"name": "File 1",
+		 * 		"url": "http://www.file1.com/"
+		 * 	},
+		 * 	{
+		 * 		"name": "Folder 1",
+		 * 		"children": [
+		 * 			{
+		 * 				"name": "File 2",
+		 * 				"url": "http://www.file2.com/"
+		 * 			},
+		 * 			{
+		 * 				"name": "Folder 2",
+		 * 				"children": [
+		 * 					{
+		 * 						"name": "File 3",
+		 * 						"url": "http://www.file3.com/"
+		 * 					}
+		 * 				]
+		 * 			}
+		 * 		]
+		 * 	},
+		 * 	{
+		 * 		"name": "File 4",
+		 * 		"url": "http://www.file4.com/"
+		 * 	}
+		 * ];</listing>
 		 */
 		public function get dataProvider():Object
 		{
