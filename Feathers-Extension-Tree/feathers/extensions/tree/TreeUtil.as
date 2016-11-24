@@ -12,8 +12,16 @@ package feathers.extensions.tree
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
+	/**
+	 *  The TreeUtil class is an all-static class with methods for working with Tree control.
+	 *
+	 * @see http://pol2095.free.fr/Feathers-Extension-Tree/ How to use Tree with mxml
+	 */
 	public class TreeUtil
     {		
+		/**
+		 * @private
+		 */
 		public static function createItemRenderer(myObject:Object, _this:Object, layoutGroup:LayoutGroup):void
 		{
 			if(myObject.hasOwnProperty("children")) myObject = myObject.children;
@@ -40,6 +48,9 @@ package feathers.extensions.tree
 			}
 		}
 		
+		/**
+		 * @private
+		 */
 		public static function move(json:Object, dropping:Object, dragging:Object, isBefore:Boolean):void
 		{
 			endLoopInsert = false;
@@ -54,7 +65,7 @@ package feathers.extensions.tree
 				if(isBefore) position -= 1;
 				dropping.parent.setChildIndex(dragging, position);
 				loopObjectDelete(json, draggingObject);
-				loopObjectInsert(json, droppingObject, position, draggingObject); //loopObjectReplace(json, droppingObject, position);
+				loopObjectInsert(json, droppingObject, position, draggingObject);
 			}
 			else
 			{
@@ -67,6 +78,9 @@ package feathers.extensions.tree
 			}
 		}
 		
+		/**
+		 * @private
+		 */
 		public static function moveNext(json:Object, dropping:Object, dragging:Object):void
 		{
 			var draggingObject:Object = dragging.object;
@@ -79,6 +93,9 @@ package feathers.extensions.tree
 			droppingObject.children.push( draggingObject );
 		}
 		
+		/**
+		 * @private
+		 */
 		public static function loopObjectDelete(myObject:Object, target:Object):void
 		{
 			for (var s:String in myObject) loopDelete(myObject, s, target);
@@ -93,6 +110,9 @@ package feathers.extensions.tree
 		}
 		
 		private static var outSeparator:Boolean;
+		/**
+		 * @private
+		 */
 		public static function createSeparator(_this:Object, mouse:Point):void
 		{
 			outSeparator = false;
@@ -121,6 +141,9 @@ package feathers.extensions.tree
 			}
 		}
 		
+		/**
+		 * @private
+		 */
 		public static function isSelf(tree:LayoutGroup, myObject:Object, target:Object):Boolean
 		{
 			var firstChild:Object;
@@ -141,12 +164,18 @@ package feathers.extensions.tree
 			return false;
 		}
 		
+		/**
+		 * @private
+		 */
 		public static function insertIn(buttonMenuHover:Object, newButton:DisplayObjectContainer, object:Object):void
 		{
 			if(buttonMenuHover.isOpen) buttonMenuHover.layoutGroup.addChild(newButton);
 			buttonMenuHover.object.children.push( object );
 		}
 		
+		/**
+		 * @private
+		 */
 		public static function insert(json:Object, buttonMenuHover:Object, newButton:DisplayObjectContainer, object:Object, isBefore:Boolean):void
 		{
 			endLoopInsert = false;
@@ -180,6 +209,9 @@ package feathers.extensions.tree
 		}
 		
 		private static var numChildren:int;
+		/**
+		 * @private
+		 */
 		public static function numSubChildren(item:Object):int
 		{
 			numChildren = 0;
@@ -198,6 +230,80 @@ package feathers.extensions.tree
 				{
 					numSubChildrenLoop( item.getChildAt(i) );
 				}
+			}
+		}
+		
+		/**
+		 * Convert a JSON (dataProvider Tree format) in a XML Object (Tree format).
+		 *
+		 * @param json a JSON Object
+		 */
+		public static function jsonToXml(json:Object):XML
+		{
+			var xml:XML = <tree/>;
+			jsonToXmlObjectLoop(json, xml);
+			return xml;
+		}
+		private static function jsonToXmlObjectLoop(json:Object, xml:Object):void
+		{
+			for (var s:String in json)
+			{
+				jsonToXmlLoop(json[s], xml);
+			}
+		}
+		private static function jsonToXmlLoop(json:Object, xml:Object):void
+		{
+			if(typeof(json) == "object") 
+			{
+				if(json is Object)
+				{
+					var node:XML = json.hasOwnProperty("children") ? <branch/> : <leaf/>;
+					xml.appendChild( node );
+					for (var s:String in json)
+					{
+						if(s != "children")
+						{
+							node.@[s] = json[s];
+						}
+						else
+						{
+							jsonToXmlObjectLoop(json.children, xml.children()[ xml.children().length() - 1 ]); // last child
+						}
+					}
+				}
+			}
+		}
+		/**
+		 * Convert a XML Object (Tree format) in a JSON (dataProvider Tree format).
+		 *
+		 * @param xml a XML Object
+		 */
+		public static function xmlToJson(xml:XML):Object
+		{
+			var json:Object = [];
+			xmlToJsonObjectLoop(xml, json);
+			return json;
+		}
+		private static function xmlToJsonObjectLoop(xml:Object, json:Object):void
+		{
+			for each(var node:Object in xml.children())
+			{
+				xmlToJsonLoop(node, json);
+			}
+		}
+		private static function xmlToJsonLoop(xml:Object, json:Object):void
+		{
+			var object:Object = {};
+			json.push( object );
+			var attributes:XMLList = xml.attributes();
+			for each(var attribute:Object in attributes)
+			{
+				object[attribute.name().toString()] = attribute.valueOf().toString();
+			}
+			if( xml.children().length() > 0 )
+			{
+				object.children = [];
+				xmlToJsonObjectLoop(xml, object.children);
 			}
 		}
     }
