@@ -909,8 +909,12 @@ package feathers.extensions.tree
 			var myObject:Object = tree;
 			for(var i:int = 0; i < index.length; i++)
 			{
-				if( !myObject.hasOwnProperty("object") ) myObject = myObject.getChildAt( index[i] );
-				if(!myObject.hasOwnProperty("object"))
+				if( i != index.length - 1 )
+				{
+					myObject = myObject.getChildAt( index[i] );
+					myObject = myObject.getChildAt(1);
+				}
+				else
 				{
 					myObject = myObject.getChildAt(0);
 				}

@@ -8,12 +8,13 @@ package starling.extensions.utils
 {
 	import starling.events.EnterFrameEvent;
 	import starling.core.Starling;
+	import starling.display.Stage;
 	import flash.events.Event;
 	
 	public class CallingLater
 	{
 		protected static var _calledLater:Vector.<CallLaterData> = new Vector.<CallLaterData>();
-		protected static var _calledLaterNum:Vector.<uint> = new Vector.<uint>();
+		protected static var _calledLaterNum:Vector.<Boolean> = new Vector.<Boolean>();
 		protected static var toggleFrame:Boolean;
 		
 		public static function call(func:Function, args:Array = null):void
@@ -46,7 +47,7 @@ package starling.extensions.utils
 			if (_calledLater.length == 0)
 			{
 				event.target.removeEventListener(EnterFrameEvent.ENTER_FRAME, callLaterEnterFrameHandler);
-				Starling.current.nativeStage.removeEventListener(Event.EXIT_FRAME, callLaterExitFrameHandler);
+				(event.target as Stage).starling.nativeStage.removeEventListener(Event.EXIT_FRAME, callLaterExitFrameHandler);
 			}
 		}
 	}
