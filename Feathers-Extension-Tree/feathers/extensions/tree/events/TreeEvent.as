@@ -8,7 +8,7 @@ package feathers.extensions.tree.events {
 	import starling.events.Event;
 	
 	/**
-	 * A event dispatched when a tree row changes
+	 * A event dispatched when a tree row changes or is selected.
 	 *
 	 * @see http://pol2095.free.fr/Feathers-Extension-Tree/ How to use Tree with mxml
 	 * @see feathers.extensions.tree.Tree

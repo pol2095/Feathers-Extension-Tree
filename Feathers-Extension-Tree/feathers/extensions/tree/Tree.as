@@ -909,14 +909,10 @@ package feathers.extensions.tree
 			var myObject:Object = tree;
 			for(var i:int = 0; i < index.length; i++)
 			{
+				myObject = myObject.getChildAt( index[i] );
 				if( i != index.length - 1 )
 				{
-					myObject = myObject.getChildAt( index[i] );
 					myObject = myObject.getChildAt(1);
-				}
-				else
-				{
-					myObject = myObject.getChildAt(0);
 				}
 			}
 			return myObject;
@@ -1183,6 +1179,7 @@ package feathers.extensions.tree
 		private function scrollToIndexCL(index:Vector.<int>):void
 		{
 			var myObject:Object = this.getItemAt( index );
+			//itemValidate(myObject);
 			var pt:Point = myObject.localToGlobal(new Point (0, 0));
 			pt = this.globalToLocal(pt);
 			
@@ -1239,6 +1236,28 @@ package feathers.extensions.tree
 		public function set animate(value:Boolean):void
 		{
 			this._animate = value;
+		}
+		
+		/*private function itemValidate(item:Object):void
+		{
+			item.validate();
+			while(item.parent != this)
+			{
+				item = item.parent;
+				item.validate();
+			}
+			this.validate();
+		}*/
+		
+		/**
+		 * @private
+		 */
+		override public function dispose():void
+		{
+			tree.layout = null;
+			tree.removeEventListener(TouchEvent.TOUCH, touchHandler);
+			TreeUtil.dispose(tree);
+			super.dispose();
 		}
 	}
 }

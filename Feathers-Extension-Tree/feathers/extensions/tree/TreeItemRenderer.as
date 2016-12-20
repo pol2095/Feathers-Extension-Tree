@@ -169,13 +169,13 @@ package feathers.extensions.tree
 			layoutGroup.addChild( backGround );
 			this.addChild( layoutGroup );
 			
-			addEventListener(Event.ADDED_TO_STAGE, onAdd);
+			this.addEventListener(Event.ADDED_TO_STAGE, onAdd);
         }
 		
 		private function onAdd(event:Event):void
 		{
-			removeEventListener(Event.ADDED_TO_STAGE, onAdd);
-			if(owner.hoverSelector) owner.stage.addEventListener(TouchEvent.TOUCH, onTouch);
+			this.removeEventListener(Event.ADDED_TO_STAGE, onAdd);
+			if(owner.hoverSelector) stage.addEventListener(TouchEvent.TOUCH, onTouch);
 		}
 		/**
 		 * @private
@@ -341,6 +341,15 @@ package feathers.extensions.tree
 			this.layoutGroup.mask = null;
 			this.layoutGroupIndex.height = NaN;
 			this.layoutGroup.removeChildren();
+		}
+		
+		/**
+		 * @private
+		 */
+		override public function dispose():void
+		{
+			if(stage) stage.removeEventListener(TouchEvent.TOUCH, onTouch);
+			super.dispose();
 		}
 	}
 }

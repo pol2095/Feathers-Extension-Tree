@@ -306,5 +306,27 @@ package feathers.extensions.tree
 				xmlToJsonObjectLoop(xml, object.children);
 			}
 		}
+		
+		/**
+		 * @private
+		 */
+		public static function dispose(item:Object):void
+		{
+			disposeLoop(item);
+		}
+		private static function disposeLoop(item:Object):void
+		{
+			for(var i:int = 0; i < item.numChildren; i++)
+			{
+				if( item.getChildAt(i).hasOwnProperty("treeChangeHandler") )
+				{
+					item.getChildAt(i).removeEventListeners();
+				}
+				else
+				{
+					disposeLoop( item.getChildAt(i) );
+				}
+			}
+		}
     }
 }
