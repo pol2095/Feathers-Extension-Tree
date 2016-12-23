@@ -39,5 +39,5 @@
 		
 	<f:ImageLoader id="dir"/>
 	<f:Label id="label"/>
-	<f:ImageLoader id="arrow"/>
+	<f:ImageLoader id="arrow"/> <!-- never forget to add this! -->
 </components:TreeItemRenderer>

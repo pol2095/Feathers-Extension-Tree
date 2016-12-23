@@ -13,7 +13,7 @@ package components
 		
 		private var dir:ImageLoader;
 		private var label:Label;
-		public var arrow:ImageLoader;
+		public var arrow:ImageLoader; //never forget to add this!
 		
 		public function CustomTreeItemRenderer()
 		{
