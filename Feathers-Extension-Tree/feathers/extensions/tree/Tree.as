@@ -957,8 +957,8 @@ package feathers.extensions.tree
 				}
 			}
 			
-			var item:Object = this.getItemJsonAt( index );
-			item.children.push( item);
+			var itemParent:Object = this.getItemJsonAt( index );
+			itemParent.children.push( item );
 		}
 		
 		/**
