@@ -8,8 +8,8 @@ package components
 	
 	public class CustomTreeItemRenderer extends TreeItemRenderer
 	{
-		public var itemRightArrowTexture:Texture;
-		public var itemDownArrowTexture:Texture;
+		public var itemRightArrowTexture:Texture; //never forget to add this!
+		public var itemDownArrowTexture:Texture; //never forget to add this!
 		
 		private var dir:ImageLoader;
 		private var label:Label;
