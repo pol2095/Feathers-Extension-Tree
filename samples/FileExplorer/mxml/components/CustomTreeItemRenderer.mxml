@@ -5,8 +5,8 @@
 	
 	<fx:Script>
 		<![CDATA[
-			public var itemRightArrowTexture:Texture;
-			public var itemDownArrowTexture:Texture;
+			public var itemRightArrowTexture:Texture; //never forget to add this!
+			public var itemDownArrowTexture:Texture; //never forget to add this!
 						
 			override public function treeChangeHandler():void
 			{
