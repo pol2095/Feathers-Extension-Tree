@@ -10,7 +10,7 @@ package com.examples
 	import starling.textures.Texture;
 	import starling.textures.TextureAtlas;
 	
-	public class FileExplorer extends LayoutGroup
+	public class ClassExplorer extends LayoutGroup
 	{
 		private var tree:Tree;
 		
@@ -27,62 +27,68 @@ package com.examples
 		private var itemRightArrowTexture:Texture = textureAtlas.getTexture("right-arrow-icon0000");
 		private var itemDownArrowTexture:Texture = textureAtlas.getTexture("down-arrow-icon0000");
 		
-		public function FileExplorer()
+		private var json:Object = [
+			{
+				"name": "Flash Forums",
+				"type": "url",
+				"fileTexture":fileTexture
+			},
+			{
+				"name": "Apache Flex forum",
+				"type": "url",
+				"fileTexture":fileTexture
+			},
+			{
+				"name": "Starling",
+				"fileTexture":folderTexture,
+				"itemRightArrowTexture":itemRightArrowTexture,
+				"itemDownArrowTexture":itemDownArrowTexture,
+				"children": [
+					{
+						"name": "Feathers",
+						"type": "url",
+						"fileTexture":fileTexture
+					},
+					{
+						"name": "display",
+						"fileTexture":folderTexture,
+						"itemRightArrowTexture":itemRightArrowTexture,
+						"itemDownArrowTexture":itemDownArrowTexture,
+						"children": [
+							{
+								"name": "Button",
+								"type": "url",
+								"fileTexture":fileTexture
+							},
+							{
+								"name": "Canvas",
+								"type": "url",
+								"fileTexture":fileTexture
+							}
+						]
+					}
+				]
+			}
+		];
+		
+		public function ClassExplorer()
 		{
 			new MetalWorksDesktopTheme();
 			super();
 			
-			tree = new Tree(); 
+			var tree:Tree = new Tree(); 
 			tree.width = 400;
 			tree.height = 400;
 			tree.itemRenderer = components.CustomTreeItemRenderer;
 			tree.addEventListener(TreeEvent.SELECT, selectHandler);
 			addChild(tree);
 			
-			init();
+			tree.dataProvider = json;
 		}
 		
-		private function init():void
-		{
-			var directory:File = File.getRootDirectories()[0];
-			var list:Array = directory.getDirectoryListing();
-			for (var i:uint = 0; i < list.length; i++) {
-				if(list[i].isDirectory)
-				{
-					tree.addItemAfter( { name:list[i].name, children:[], fileTexture:folderTexture, itemRightArrowTexture:itemRightArrowTexture, itemDownArrowTexture:itemDownArrowTexture }, new <int>[ i - 1 ] );
-				}
-				else
-				{
-					tree.addItemAfter( { name:list[i].name, fileTexture:fileTexture }, new <int>[ i - 1 ] );
-				}
-			}
-		}
 		private function selectHandler( event:TreeEvent ):void
 		{
-			if(event.isDirectory)
-			{
-				if(event.item.isOpen)
-				{
-					tree.removeJsonChildrenAt( event.index );
-					return;
-				}
-				var directory:File = File.getRootDirectories()[0].resolvePath(tree.getPathAt(event.index));
-				var list:Array = directory.getDirectoryListing();
-				for (var i:uint = 0; i < list.length; i++) {
-					if(list[i].isDirectory)
-					{
-						event.index.push( i - 1 );
-							tree.addItemAfter( { name:list[i].name, children:[], fileTexture:folderTexture, itemRightArrowTexture:itemRightArrowTexture, itemDownArrowTexture:itemDownArrowTexture }, event.index );
-						event.index.pop();
-					}
-					else
-					{
-						event.index.push( i - 1 );
-							tree.addItemAfter( { name:list[i].name, fileTexture:fileTexture }, event.index );
-						event.index.pop();
-					}
-				}
-			}
+			trace( event.data.name );
 		}
 	}
 }
