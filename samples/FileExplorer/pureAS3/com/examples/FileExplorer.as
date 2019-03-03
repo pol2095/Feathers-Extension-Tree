@@ -6,7 +6,7 @@ package com.examples
 	import feathers.controls.LayoutGroup;
 	import flash.filesystem.File;
 	import flash.display.Bitmap;
-	import feathers.themes.MetalWorksDesktopTheme;
+	import feathers.extensions.themes.MetalWorksDesktopTheme;
 	import starling.textures.Texture;
 	import starling.textures.TextureAtlas;
 	

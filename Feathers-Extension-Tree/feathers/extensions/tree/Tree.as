@@ -6,7 +6,7 @@ accordance with the terms of the accompanying license agreement.
 */
 package feathers.extensions.tree
 {
-	import feathers.controls.ScrollContainer;
+	import feathers.extensions.borderContainer.BorderScrollContainer;
 	import feathers.dragDrop.DragData;
 	import feathers.dragDrop.DragDropManager;
 	import feathers.events.DragDropEvent;
@@ -58,7 +58,7 @@ package feathers.extensions.tree
 	 * @see http://pol2095.free.fr/Feathers-Extension-Tree/ How to use Tree with mxml
 	 * @see feathers.extensions.tree.TreeItemRenderer
 	 */
-	public class Tree extends ScrollContainer
+	public class Tree extends BorderScrollContainer
 	{
 		private var _lineSize:Number = 2;
 		/**
@@ -189,7 +189,8 @@ package feathers.extensions.tree
 		{
 			tree = new LayoutGroup();
 			tree.layout = new VerticalLayout();
-			(tree.layout as VerticalLayout).paddingTop = (tree.layout as VerticalLayout).paddingBottom = separator / 2;
+			(tree.layout as VerticalLayout).paddingTop = (tree.layout as VerticalLayout).paddingBottom = separator;
+			(tree.layout as VerticalLayout).paddingLeft = (tree.layout as VerticalLayout).paddingRight = separator;
 			this.addChild( tree );
 			tree.addEventListener(TouchEvent.TOUCH, touchHandler);
 		}
@@ -344,7 +345,7 @@ package feathers.extensions.tree
 						break;
 				}
 			}
-			this._selectedIndex = dragging.isSelected ? this.getItemIndex( dragging ) : null;
+			this._selectedIndex = dragging.isSelected ? this.getItemIndex( dragging, dropping ) : null;
 			
 			dispatchEvent(new DragDropTreeEvent( DragDropTreeEvent.DRAG_COMPLETE, newIndex, this.draggingIndex, isDirectory));
 		}
@@ -662,11 +663,17 @@ package feathers.extensions.tree
 		 *
 		 * @param myObject a tree item
 		 */
-		public function getItemIndex(myObject:Object):Vector.<int>
+		public function getItemIndex(myObject:Object, dropping:Object = null):Vector.<int>
 		{
 			var index:Vector.<int> = new <int>[];
 			while(myObject != tree)
 			{
+				if( ! myObject.parent )
+				{
+					index = this.getItemIndex( dropping );
+					index.push( this.getItemJsonAt(index).children.length - 1 );
+					return index;
+				}
 				if(myObject.name == "index") index.unshift( myObject.parent.getChildIndex(myObject) );
 				myObject = myObject.parent;
 			}
